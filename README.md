@@ -58,6 +58,25 @@ The extension makes **zero external network requests**. The only network activit
 - All order data stored locally in Chrome, cleared with the "Clear All" button
 - Source code is fully open for inspection
 
+## A note on the install warning
+
+When you install this extension, Chrome will show **"Read and change your data on amazon.com"** (and the other supported Amazon domains). This is Chrome's standard wording for any extension that accesses a website — there is no "read-only" permission in Chrome's permission system.
+
+**This extension only reads.** It does not modify any Amazon pages, submit forms, place orders, or change your account in any way. You can verify this yourself — the full source code is here, and there is no `document.write`, no form submissions, and no POST requests anywhere in the codebase.
+
+## Security choices
+
+This extension is designed to be auditable by anyone. Here are the specific choices we made:
+
+- **No innerHTML with user data.** All Amazon-sourced content (item names, prices, categories) is rendered using `textContent` or escaped with dedicated `escapeHTML`/`escapeAttr` helpers. This eliminates XSS as a category of risk.
+- **No eval, no dynamic code.** Zero use of `eval()`, `new Function()`, or string-based `setTimeout`. No dynamically generated code of any kind.
+- **No external requests.** The only `fetch` call is a relative-path request to Amazon product pages on the same domain (for category breadcrumbs), and it uses `credentials: 'omit'` so it doesn't send cookies.
+- **Input validation.** ASINs are validated against a strict `[A-Z0-9]{10}` regex before being used in any URL.
+- **Minimal permissions.** No access to browsing history, cookies, downloads, or any other sensitive Chrome API.
+- **No background process.** No service worker, no persistent background page. The extension only runs when you click it.
+
+If you find a security concern, please [open an issue](https://github.com/micah63/amazon-order-exporter/issues).
+
 ## License
 
 MIT
