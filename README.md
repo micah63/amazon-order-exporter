@@ -14,7 +14,7 @@ Built for [icanbudget](https://icanbudget.com) customers who want to import Amaz
 
 ## Supported Amazon regions
 
-.com, .ca, .co.uk, .de, .fr, .co.jp, .com.au, .in, .es, .it
+Currently supported: Amazon US (.com) and Canada (.ca). More regions coming soon.
 
 ## Install from Chrome Web Store
 

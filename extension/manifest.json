@@ -6,15 +6,7 @@
   "permissions": ["activeTab", "storage", "scripting"],
   "host_permissions": [
     "*://*.amazon.com/*",
-    "*://*.amazon.ca/*",
-    "*://*.amazon.co.uk/*",
-    "*://*.amazon.de/*",
-    "*://*.amazon.fr/*",
-    "*://*.amazon.co.jp/*",
-    "*://*.amazon.com.au/*",
-    "*://*.amazon.in/*",
-    "*://*.amazon.es/*",
-    "*://*.amazon.it/*"
+    "*://*.amazon.ca/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -29,15 +21,7 @@
     {
       "matches": [
         "*://*.amazon.com/*",
-        "*://*.amazon.ca/*",
-        "*://*.amazon.co.uk/*",
-        "*://*.amazon.de/*",
-        "*://*.amazon.fr/*",
-        "*://*.amazon.co.jp/*",
-        "*://*.amazon.com.au/*",
-        "*://*.amazon.in/*",
-        "*://*.amazon.es/*",
-        "*://*.amazon.it/*"
+        "*://*.amazon.ca/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
