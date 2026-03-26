@@ -14,7 +14,7 @@ Built for [icanbudget](https://icanbudget.com) customers who want to import Amaz
 
 ## Supported Amazon regions
 
-Currently supported: Amazon US (.com) and Canada (.ca). More regions coming soon.
+Amazon US (.com) and Canada (.ca).
 
 ## Install from Chrome Web Store
 

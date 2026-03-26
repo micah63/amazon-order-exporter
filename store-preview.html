@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Store Listing Preview  - Amazon Order Exporter</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Google Sans', 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #202124;
+    }
+    .store-header {
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 16px 40px;
+      font-size: 14px;
+      color: #5f6368;
+    }
+    .store-body {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 40px;
+    }
+    .hero {
+      display: flex;
+      gap: 32px;
+      margin-bottom: 40px;
+    }
+    .hero-left {
+      flex: 0 0 128px;
+    }
+    .hero-left img {
+      width: 128px;
+      height: 128px;
+      border-radius: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .hero-right {
+      flex: 1;
+    }
+    .hero-right h1 {
+      font-size: 28px;
+      font-weight: 400;
+      margin-bottom: 4px;
+    }
+    .hero-meta {
+      font-size: 13px;
+      color: #5f6368;
+      margin-bottom: 12px;
+    }
+    .hero-summary {
+      font-size: 14px;
+      color: #3c4043;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .add-btn {
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .screenshots {
+      margin-bottom: 40px;
+    }
+    .screenshots h2 {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 16px;
+      color: #3c4043;
+    }
+    .screenshot-row {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .screenshot-row img {
+      height: 280px;
+      border-radius: 8px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+      flex-shrink: 0;
+    }
+    .description {
+      background: #fff;
+      border-radius: 8px;
+      padding: 32px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      margin-bottom: 40px;
+    }
+    .description h2 {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 16px;
+      color: #3c4043;
+    }
+    .description-body {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #3c4043;
+      white-space: pre-line;
+    }
+    .sidebar {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+    .sidebar-section {
+      background: #fff;
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      flex: 1;
+    }
+    .sidebar-section h3 {
+      font-size: 13px;
+      font-weight: 500;
+      color: #5f6368;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    .sidebar-section ul {
+      list-style: none;
+      font-size: 14px;
+      color: #3c4043;
+    }
+    .sidebar-section li {
+      padding: 4px 0;
+    }
+    .sidebar-section a {
+      color: #1a73e8;
+      text-decoration: none;
+    }
+    .badge {
+      display: inline-block;
+      background: #e8f0fe;
+      color: #1967d2;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin: 2px 4px 2px 0;
+    }
+    .draft-notice {
+      background: #fef7e0;
+      border: 1px solid #f9d648;
+      border-radius: 8px;
+      padding: 12px 20px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      color: #644e0f;
+    }
+  </style>
+</head>
+<body>
+  <div class="store-header">
+    chrome web store &nbsp;/&nbsp; Extensions &nbsp;/&nbsp; Productivity
+  </div>
+  <div class="store-body">
+    <div class="draft-notice">
+      DRAFT PREVIEW  - This is a mockup of how your listing will appear on the Chrome Web Store. Review all text and screenshots before submitting.
+    </div>
+
+    <div class="hero">
+      <div class="hero-left">
+        <img src="extension/icons/icon128.png" alt="Amazon Order Exporter">
+      </div>
+      <div class="hero-right">
+        <h1>Amazon Order Exporter</h1>
+        <div class="hero-meta">
+          Offered by: Micah Peterson &nbsp;&bull;&nbsp; Productivity &nbsp;&bull;&nbsp; 0 users
+        </div>
+        <div class="hero-summary">
+          Export your Amazon orders to a spreadsheet. Names, prices, categories  - all in one click. Your data never leaves your browser.
+        </div>
+        <button class="add-btn">Add to Chrome</button>
+      </div>
+    </div>
+
+    <div class="screenshots">
+      <h2>Screenshots</h2>
+      <div class="screenshot-row">
+        <img src="store-screenshots/screenshot-3.png" alt="Collected items with categories">
+        <img src="store-screenshots/screenshot-2.png" alt="Fetching categories">
+        <img src="store-screenshots/screenshot-1.png" alt="Empty state">
+        <img src="store-screenshots/screenshot-4.png" alt="CSV in spreadsheet">
+      </div>
+    </div>
+
+    <div class="description">
+      <h2>Description</h2>
+      <div class="description-body">Ever wish you could just get your Amazon purchases into a spreadsheet? Now you can.
+
+Amazon Order Exporter grabs your order history  - item names, prices, dates, and categories  - and turns it into a clean spreadsheet file you can open in Excel, Google Sheets, or any budgeting app.
+
+HOW IT WORKS:
+1. Go to your Amazon order history
+2. Click "Collect Orders" on each page
+3. Hit "Download CSV" and you're done
+
+That's it. No setup, no account, no learning curve.
+
+WHAT YOU GET:
+• Item names and prices
+• Order dates and totals
+• Product categories (like "Books", "Electronics", "Grocery")
+• Everything organized and ready to import
+
+YOUR DATA IS SAFE:
+• Nothing ever leaves your browser  - period
+• No servers, no sign-ups, no tracking
+• We don't see your data. Nobody does. It stays on your computer.
+• The code is 100% open source  - anyone can read it at github.com/micah63/amazon-order-exporter
+
+BUILT FOR BUDGETING:
+Works great with icanbudget and any app or spreadsheet that opens CSV files. Finally see where your Amazon money actually goes.
+
+Works with Amazon US and Canada.</div>
+    </div>
+
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <h3>Additional Information</h3>
+        <ul>
+          <li><strong>Version:</strong> 1.0.0</li>
+          <li><strong>Size:</strong> ~30KB</li>
+          <li><strong>Language:</strong> English</li>
+          <li><strong>Category:</strong> Productivity</li>
+        </ul>
+      </div>
+      <div class="sidebar-section">
+        <h3>Permissions</h3>
+        <div>
+          <span class="badge">activeTab</span>
+          <span class="badge">storage</span>
+          <span class="badge">scripting</span>
+        </div>
+        <ul style="margin-top: 12px;">
+          <li>Read your data on 10 Amazon domains</li>
+        </ul>
+      </div>
+      <div class="sidebar-section">
+        <h3>Links</h3>
+        <ul>
+          <li><a href="https://github.com/micah63/amazon-order-exporter">Source Code (GitHub)</a></li>
+          <li><a href="https://github.com/micah63/amazon-order-exporter/blob/main/PRIVACY.md">Privacy Policy</a></li>
+          <li><a href="https://github.com/micah63/amazon-order-exporter/issues">Report an Issue</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
