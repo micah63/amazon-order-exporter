@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 380px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 13px;
+      color: #37474f;
+      background: #fff;
+    }
+
+    /* --- Header --- */
+    .header {
+      background: #f5f5f5;
+      color: #37474f;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .header img { width: 24px; height: 24px; }
+    .header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .header .version {
+      font-weight: 400;
+      font-size: 10px;
+      color: #b0bec5;
+    }
+
+    /* --- Content --- */
+    .content { padding: 14px 16px 16px; }
+
+    .status {
+      background: #f5f5f5;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #90a4ae;
+    }
+    .status strong { color: #37474f; font-weight: 600; }
+
+    .hint {
+      font-size: 11px;
+      color: #b0bec5;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    /* --- Buttons --- */
+    button {
+      padding: 9px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: #ff9900;
+      color: #fff;
+      width: 100%;
+      margin-bottom: 4px;
+    }
+    .btn-primary:hover { background: #e68a00; }
+    .btn-primary:disabled { background: #ddd; color: #999; cursor: not-allowed; }
+
+    /* --- Toggle --- */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #90a4ae;
+      margin-bottom: 12px;
+    }
+    .toggle-label { cursor: pointer; user-select: none; }
+    .toggle {
+      position: relative;
+      width: 34px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: #cfd8dc;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+    .toggle input:checked + .toggle-track { background: #ff9900; }
+    .toggle input:checked + .toggle-track::after { transform: translateX(16px); }
+
+    /* --- Item list --- */
+    .item-count {
+      font-size: 12px;
+      color: #90a4ae;
+      margin-bottom: 6px;
+    }
+    .item-count strong { color: #37474f; }
+    .item-list {
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .item-list-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-bottom: 1px solid #e0e0e0;
+      background: #fafafa;
+      position: sticky;
+      top: 0;
+    }
+    .item-list-header > span {
+      font-size: 10px;
+      font-weight: 500;
+      color: #b0bec5;
+      letter-spacing: 0.3px;
+    }
+    .item-row {
+      padding: 7px 10px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .item-row:nth-child(even) { background: #fafbfc; }
+    .item-row:last-child { border-bottom: none; }
+    .item-row:hover { background: #f5f6f7; }
+    .item-name {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #37474f;
+    }
+    .item-price {
+      flex: 0 0 50px;
+      text-align: right;
+      color: #546e7a;
+      font-size: 12px;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .item-cat {
+      flex: 0 0 90px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 11px;
+      color: #90a4ae;
+    }
+    .cat-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .cat-dot-yes { background: #ff9900; }
+    .cat-dot-no { background: #ddd; }
+    .cat-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .item-delete {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      margin: 0;
+      background: none;
+      border: none;
+      color: #90a4ae;
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 4px;
+      line-height: 22px;
+      text-align: center;
+    }
+    .item-delete:hover { background: #fbe9e7; color: #d84315; }
+
+    /* --- Trim / bottom actions --- */
+    .btn-trim {
+      width: 100%;
+      background: #fff;
+      color: #90a4ae;
+      border: 1px solid #e0e0e0;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px;
+      margin-bottom: 10px;
+    }
+    .btn-trim:hover { background: #f5f5f5; color: #546e7a; }
+    .btn-trim:disabled { color: #cfd8dc; border-color: #eceff1; cursor: not-allowed; }
+    .btn-trim.has-priceless {
+      color: #e65100;
+      border-color: #ffcc80;
+      background: #fff8e1;
+    }
+    .btn-trim.has-priceless:hover { background: #ffecb3; }
+
+    .bottom-actions { display: flex; gap: 8px; }
+    .bottom-actions button { flex: 1; }
+    .btn-secondary {
+      background: #f5f5f5;
+      color: #78909c;
+      font-weight: 500;
+    }
+    .btn-secondary:hover { background: #eceff1; color: #546e7a; }
+    .btn-secondary:disabled { background: #fafafa; color: #cfd8dc; cursor: not-allowed; }
+    .btn-download {
+      background: #ff9900;
+      color: #fff;
+    }
+    .btn-download:hover { background: #e68a00; }
+    .btn-download:disabled { background: #ddd; color: #999; cursor: not-allowed; }
+
+    /* --- Messages --- */
+    .message {
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+    .message.success { background: #fff8e1; color: #e65100; }
+    .message.error { background: #fbe9e7; color: #bf360c; }
+    .message.info { background: #f5f5f5; color: #546e7a; }
+    .hidden { display: none; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .fetching { animation: pulse 1.2s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="icons/icon32.png" alt="">
+    <h1>Amazon Order Exporter <span id="version" class="version"></span></h1>
+  </div>
+  <div class="content">
+    <div class="status">
+      Page: <strong id="pageType">Detecting...</strong>
+    </div>
+    <p class="hint">Navigate to each page of your orders and click Collect Orders.</p>
+    <div id="message" class="message hidden"></div>
+    <button id="collectBtn" class="btn-primary" disabled>Collect Orders</button>
+    <div class="toggle-row">
+      <label class="toggle-label" for="includeCategories">Include categories (slower)</label>
+      <label class="toggle">
+        <input type="checkbox" id="includeCategories" checked>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="item-count">
+      Collected: <strong id="itemCount">0</strong> items
+    </div>
+    <div id="itemList" class="item-list hidden"></div>
+    <button id="trimBtn" class="btn-trim" disabled>Remove items with no price</button>
+    <div class="bottom-actions">
+      <button id="clearBtn" class="btn-secondary" disabled>Clear All</button>
+      <button id="downloadBtn" class="btn-download" disabled>Download CSV</button>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
