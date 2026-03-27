@@ -189,14 +189,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function sendToContentScript(message) {
-    try {
-      return await chrome.tabs.sendMessage(tab.id, message);
-    } catch {
-      // Content script not injected yet -- inject and retry
-      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
-      await new Promise(resolve => setTimeout(resolve, 200));
-      return chrome.tabs.sendMessage(tab.id, message);
-    }
+    return await chrome.tabs.sendMessage(tab.id, message);
   }
 
   function showMessage(text, type, animate) {

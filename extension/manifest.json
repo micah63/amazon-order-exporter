@@ -3,7 +3,7 @@
   "name": "Amazon Order Exporter",
   "version": "1.0.0",
   "description": "Export your Amazon order history as CSV for budgeting",
-  "permissions": ["activeTab", "storage", "scripting"],
+  "permissions": ["activeTab", "storage"],
   "host_permissions": [
     "*://*.amazon.com/*",
     "*://*.amazon.ca/*"
