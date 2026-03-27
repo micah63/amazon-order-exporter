@@ -1,3 +1,7 @@
 node_modules/
 .DS_Store
 *.zip
+store-preview.html
+store-copy.txt
+store-assets/
+store-screenshots/

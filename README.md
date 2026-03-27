@@ -45,7 +45,6 @@ Coming soon.
 |---|---|
 | `activeTab` | Access the current Amazon tab when you click the extension |
 | `storage` | Save collected orders between popup sessions |
-| `scripting` | Inject the content script if it hasn't loaded yet |
 | `host_permissions` (Amazon domains) | Read order data from Amazon pages |
 
 The extension makes **zero external network requests**. The only network activity is fetching Amazon product pages (same domain) for category data, and only when you opt in.
