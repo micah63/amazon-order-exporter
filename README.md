@@ -18,7 +18,7 @@ Amazon US (.com) and Canada (.ca).
 
 ## Install from Chrome Web Store
 
-Coming soon.
+[Amazon Order Exporter on the Chrome Web Store](https://chromewebstore.google.com/detail/amazon-order-exporter/fibkdfghmbckiccdkldcohmojlgiacnp)
 
 ## Install from source (developer mode)
 
