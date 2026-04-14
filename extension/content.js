@@ -4,20 +4,25 @@ const ORDER_LIST_URL = /\/your-orders\/orders|\/gp\/your-account\/order-history|
 const ORDER_DETAIL_URL = /\/gp\/your-account\/order-details|\/your-orders\/order-details|orderID=/;
 const ORDER_ID_PATTERN = /[A-Z0-9]{3}-\d{7}-\d{7}/;
 
+const SKIP_ITEM_PATTERN = /order-details|invoice|review|write.*review|your.*library|mystuff|track|return|buy\s*it\s*again|view\s*your\s*item|write\s*a\s*product|get\s*product\s*support|rewards\s*(mastercard|visa|amex)|amazon\.ca\s*rewards/i;
+
+const DATE_PATTERN = /(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4}|\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}/i;
+
+const CARD_BRANDS = ['Visa', 'Mastercard', 'American Express', 'Discover', 'Amex'];
+
+const PRICE_SEARCH_DEPTH = 8;
+const QTY_SEARCH_DEPTH = 5;
+const QTY_WIDE_SEARCH_DEPTH = 8;
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'scrape') {
-    try {
-      sendResponse(scrapeCurrentPage());
-    } catch (err) {
-      sendResponse({ pageType: 'error', orders: [], error: err.message });
-    }
-    return;
-  }
-
-  if (request.action === 'fetchCategory') {
+    sendResponse(scrapeCurrentPage());
+  } else if (request.action === 'fetchDetail') {
+    fetchOrderDetail(request.url).then(order => sendResponse({ order }));
+  } else if (request.action === 'fetchCategory') {
     fetchCategory(request.asin).then(category => sendResponse({ category }));
-    return true; // keep channel open for async
   }
+  return true;
 });
 
 function scrapeCurrentPage() {
@@ -37,15 +42,9 @@ function detectPageType() {
 // --- Order List Page ---
 
 function scrapeOrderList() {
-  let cards = document.querySelectorAll('.order-card, .js-order-card');
+  let cards = document.querySelectorAll('[class*="order-card"], [class*="order_card"]');
 
-  if (cards.length === 0) {
-    cards = document.querySelectorAll('[class*="order-card"], [class*="order_card"]');
-  }
-
-  if (cards.length === 0) {
-    cards = findOrderContainers();
-  }
+  if (cards.length === 0) cards = findOrderContainers();
 
   const orders = [];
   const seen = new Set();
@@ -61,6 +60,8 @@ function scrapeOrderList() {
   return { pageType: 'order-list', orders, count: orders.length };
 }
 
+// TreeWalker is used here instead of querySelectorAll('*') because Amazon pages
+// can have thousands of DOM elements. TreeWalker efficiently scans only text nodes.
 function findOrderContainers() {
   const containers = [];
   const walker = document.createTreeWalker(
@@ -96,7 +97,6 @@ function extractOrderFromCard(card) {
 
   const order = {
     source: 'list',
-    scrapedAt: new Date().toISOString(),
     orderId: idMatch[0],
     orderDate: extractDate(text),
     total: extractLabeledCurrency(card) || extractFirstCurrency(text),
@@ -113,7 +113,6 @@ function extractOrderFromCard(card) {
 function extractListItems(card) {
   const items = [];
   const seen = new Set();
-  const skipPatterns = /order-details|invoice|review|write.*review|your.*library|mystuff|track|return/i;
 
   const productLinks = card.querySelectorAll(
     'a[href*="/dp/"], a[href*="/gp/product/"], a[href*="/detail/"]'
@@ -122,7 +121,7 @@ function extractListItems(card) {
   for (const link of productLinks) {
     const name = link.textContent.trim();
     if (!name || name.length < 3) continue;
-    if (skipPatterns.test(name)) continue;
+    if (SKIP_ITEM_PATTERN.test(name)) continue;
 
     const asinMatch = link.pathname.match(/\/dp\/([A-Z0-9]{10})/);
     const asin = asinMatch ? asinMatch[1] : '';
@@ -157,10 +156,10 @@ function scrapeOrderDetail() {
   }
 
   const summary = extractOrderSummary();
+  const payments = extractPaymentMethods();
 
   const order = {
     source: 'detail',
-    scrapedAt: new Date().toISOString(),
     orderId,
     orderDate: extractDate(text),
     items: extractDetailItems(),
@@ -169,23 +168,31 @@ function scrapeOrderDetail() {
     tax: summary.tax,
     subtotal: summary.subtotal,
     refund: summary.refund,
+    giftCardAmount: summary.giftCardAmount,
     recipient: extractDetailRecipient(),
+    paymentMethod1: payments[0]?.name || '',
+    paymentMethod1Amount: payments[0]?.amount || '',
+    paymentMethod2: payments[1]?.name || '',
+    paymentMethod2Amount: payments[1]?.amount || '',
   };
 
   return { pageType: 'order-detail', orders: [order] };
 }
 
-function extractDetailItems() {
+function extractDetailItems(doc = document) {
   const items = [];
   const seen = new Set();
+  const scope = doc.querySelector('#orderDetails') || doc.querySelector('main') || doc;
 
-  const productLinks = document.querySelectorAll(
+  const productLinks = scope.querySelectorAll(
     'a[href*="/gp/product/"], a[href*="/dp/"], a[href*="/gp/aw/d/"]'
   );
 
   for (const link of productLinks) {
+    if (link.closest('[class*="sims"], [class*="carousel"], [class*="p13n"]')) continue;
     const name = link.textContent.trim();
     if (!name || name.length < 3) continue;
+    if (SKIP_ITEM_PATTERN.test(name)) continue;
 
     const asinMatch = link.href.match(/\/(?:dp|gp\/product|gp\/aw\/d)\/([A-Z0-9]{10})/);
     const asin = asinMatch ? asinMatch[1] : '';
@@ -213,25 +220,41 @@ function getAncestor(element, levels) {
 }
 
 function findNearbyPrice(element) {
-  const match = getAncestor(element, 5).textContent.match(/\$[\d,]+\.\d{2}/);
-  return match ? match[0] : '';
+  for (let levels = 3; levels <= PRICE_SEARCH_DEPTH; levels++) {
+    const match = getAncestor(element, levels).textContent.match(/\$[\d,]+\.\d{2}/);
+    if (match) return match[0];
+  }
+  return '';
 }
 
 function findNearbyQuantity(element) {
-  const match = getAncestor(element, 5).textContent.match(/(?:Qty|Quantity)[:\s]*(\d+)/i);
-  return match ? match[1] : '1';
+  const container = getAncestor(element, QTY_SEARCH_DEPTH);
+  const qtyBadge = container.querySelector('.od-item-view-qty span');
+  if (qtyBadge) {
+    const qty = qtyBadge.textContent.trim();
+    if (/^\d+$/.test(qty) && parseInt(qty) > 0) return qty;
+  }
+
+  const wideContainer = getAncestor(element, QTY_WIDE_SEARCH_DEPTH);
+  const textMatch = wideContainer.textContent.match(/(?:Qty|Quantity)[:\s]*(\d+)/i);
+  if (textMatch) return textMatch[1];
+  const badges = wideContainer.querySelectorAll('span.a-badge-text, span[class*="quantity"], span[class*="qty"]');
+  for (const badge of badges) {
+    const d = badge.textContent.trim().match(/^(\d+)$/);
+    if (d && parseInt(d[1]) > 0) return d[1];
+  }
+  return '1';
 }
 
-function extractOrderSummary() {
-  const body = document.body.textContent;
-  const summary = { total: '', shipping: '', tax: '', subtotal: '', refund: '' };
+function extractOrderSummary(doc = document) {
+  const body = doc.body.textContent;
+  const summary = { total: '', shipping: '', tax: '', subtotal: '', refund: '', giftCardAmount: '' };
 
   const patterns = {
-    total: /(?:Grand\s*Total|Order\s*Total|Total)[:\s]*(\$[\d,]+\.\d{2})/i,
     shipping: /(?:Shipping\s*(?:&\s*Handling)?|Delivery)[:\s]*(\$[\d,]+\.\d{2})/i,
-    tax: /(?:(?:Estimated\s*)?Tax|VAT|GST|PST|HST)[:\s]*(\$[\d,]+\.\d{2})/i,
     subtotal: /(?:Items?\s*Subtotal|Subtotal)[:\s]*(\$[\d,]+\.\d{2})/i,
     refund: /(?:Refund|Credit)[:\s]*-?\s*(\$[\d,]+\.\d{2})/i,
+    giftCardAmount: /Gift\s*Card\s*Amount[:\s]*-?\s*(\$[\d,]+\.\d{2})/i,
   };
 
   for (const [key, pattern] of Object.entries(patterns)) {
@@ -239,29 +262,100 @@ function extractOrderSummary() {
     if (match) summary[key] = match[1];
   }
 
+  // Match most-specific total label first, fall back to generic "Total"
+  const totalMatch =
+    body.match(/Grand\s*Total[:\s]*(\$[\d,]+\.\d{2})/i) ||
+    body.match(/Order\s*Total[:\s]*(\$[\d,]+\.\d{2})/i) ||
+    body.match(/Total[:\s]*(\$[\d,]+\.\d{2})/i);
+  if (totalMatch) summary.total = totalMatch[1];
+
+  // Sum all tax lines (PST, GST, HST, QST, RST, VAT, Tax) but exclude "before tax"
+  const taxPattern = /(?<!before )(?:(?:Estimated\s+)?(?:Tax(?:es)?|VAT|(?:PST|RST|QST|GST|HST)(?:\/(?:PST|RST|QST|GST|HST))*))\s*:\s*(\$[\d,]+\.\d{2})/gi;
+  let taxTotal = 0;
+  for (const m of body.matchAll(taxPattern)) {
+    taxTotal += parseFloat(m[1].replace(/[$,]/g, ''));
+  }
+  if (taxTotal > 0) summary.tax = '$' + taxTotal.toFixed(2);
+
   return summary;
 }
 
-function extractDetailRecipient() {
-  const match = document.body.textContent.match(
-    /(?:Shipping\s*Address|Deliver\s*to)[:\s]*\n?\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/i
+function extractPaymentMethods(doc = document) {
+  const methods = [];
+
+  const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, [role="heading"]');
+  let paymentList = null;
+  for (const h of headings) {
+    if (/^payment\s*method/i.test(h.textContent.trim())) {
+      paymentList = h.nextElementSibling;
+      break;
+    }
+  }
+
+  if (paymentList) {
+    for (const item of paymentList.children) {
+      if (item.tagName === 'SCRIPT' || item.tagName === 'STYLE' || item.tagName === 'LINK') continue;
+      const text = item.textContent.trim();
+
+      if (/gift\s*card/i.test(text)) {
+        methods.push({ name: 'Gift Card', amount: '' });
+        continue;
+      }
+
+      for (const brand of CARD_BRANDS) {
+        if (text.toLowerCase().includes(brand.toLowerCase())) {
+          const lastFour = text.match(/(\d{4})/);
+          const name = brand + (lastFour ? ' ' + lastFour[1] : '');
+          if (!methods.some(m => m.name === name)) {
+            methods.push({ name, amount: '' });
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  return methods.slice(0, 2);
+}
+
+function extractDetailRecipient(doc = document) {
+  // DOM-based: find "Ship to" or "Shipping Address" heading and get first list item
+  const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, [role="heading"]');
+  for (const h of headings) {
+    if (/^ship(?:ping\s*address|\s*to)$/i.test(h.textContent.trim())) {
+      const list = h.nextElementSibling;
+      if (list) {
+        const firstItem = list.querySelector('li, [role="listitem"]');
+        if (firstItem) {
+          const name = firstItem.textContent.trim().replace(/\s+/g, ' ');
+          if (name.length > 2 && name.length < 100) return name;
+        }
+      }
+    }
+  }
+
+  // Fallback: regex scoped to main content (avoids navbar "Deliver to" which includes city)
+  const scope = doc.querySelector('main, #content, #a-page') || doc.body;
+  const scopeText = scope.textContent;
+
+  const addrMatch = scopeText.match(
+    /Shipping\s*Address\s*[:\n]\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)+)/
   );
-  return match ? match[1].trim() : '';
+  if (addrMatch) return addrMatch[1].trim().replace(/\s+/g, ' ');
+
+  const shipMatch = scopeText.match(
+    /Ship\s*to\s*[:\n]\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)+)/
+  );
+  if (shipMatch) return shipMatch[1].trim().replace(/\s+/g, ' ');
+
+  return '';
 }
 
 // --- Shared Helpers ---
 
 function extractDate(text) {
-  const patterns = [
-    /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}/i,
-    /\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}/i,
-    /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4}/i,
-  ];
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) return match[0];
-  }
-  return '';
+  const match = text.match(DATE_PATTERN);
+  return match ? match[0] : '';
 }
 
 function extractLabeledCurrency(element) {
@@ -310,6 +404,37 @@ function extractRecipient(card) {
     }
   }
   return '';
+}
+
+async function fetchOrderDetail(url) {
+  try {
+    const resp = await fetch(url);
+    const html = await resp.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    const text = doc.body.textContent;
+    const summary = extractOrderSummary(doc);
+    const payments = extractPaymentMethods(doc);
+
+    return {
+      source: 'detail',
+      orderDate: extractDate(text),
+      items: extractDetailItems(doc),
+      total: summary.total,
+      shipping: summary.shipping,
+      tax: summary.tax,
+      subtotal: summary.subtotal,
+      refund: summary.refund,
+      giftCardAmount: summary.giftCardAmount,
+      recipient: extractDetailRecipient(doc),
+      paymentMethod1: payments[0]?.name || '',
+      paymentMethod1Amount: payments[0]?.amount || '',
+      paymentMethod2: payments[1]?.name || '',
+      paymentMethod2Amount: payments[1]?.amount || '',
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function fetchCategory(asin) {

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Amazon Order Exporter",
-  "version": "1.0.0",
+  "version": "1.1.18",
   "description": "Export your Amazon order history as CSV for budgeting",
   "permissions": ["activeTab", "storage"],
   "host_permissions": [
@@ -9,13 +9,7 @@
     "*://*.amazon.ca/*"
   ],
   "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "32": "icons/icon32.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
+    "default_popup": "popup.html"
   },
   "content_scripts": [
     {

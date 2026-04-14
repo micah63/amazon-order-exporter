@@ -71,6 +71,8 @@
     }
     .btn-primary:hover { background: #e68a00; }
     .btn-primary:disabled { background: #ddd; color: #999; cursor: not-allowed; }
+    .btn-primary.btn-cancel { background: #78909c; }
+    .btn-primary.btn-cancel:hover { background: #607d8b; }
 
     /* --- Toggle --- */
     .toggle-row {
@@ -111,6 +113,8 @@
     }
     .toggle input:checked + .toggle-track { background: #ff9900; }
     .toggle input:checked + .toggle-track::after { transform: translateX(16px); }
+    .toggle input:disabled + .toggle-track { background: #e0e0e0; cursor: not-allowed; opacity: 0.5; }
+    .toggle input:disabled:checked + .toggle-track { background: #cfd8dc; }
 
     /* --- Item list --- */
     .item-count {
@@ -227,6 +231,12 @@
       background: #fff8e1;
     }
     .btn-trim.has-priceless:hover { background: #ffecb3; }
+    .btn-trim:disabled.has-priceless {
+      color: #cfd8dc;
+      border-color: #eceff1;
+      background: #fafafa;
+      cursor: not-allowed;
+    }
 
     .bottom-actions { display: flex; gap: 8px; }
     .bottom-actions button { flex: 1; }
@@ -255,8 +265,31 @@
     .message.error { background: #fbe9e7; color: #bf360c; }
     .message.info { background: #f5f5f5; color: #546e7a; }
     .hidden { display: none; }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-    .fetching { animation: pulse 1.2s ease-in-out infinite; }
+
+
+    /* --- Progress bar --- */
+    .progress { display: none; margin-bottom: 10px; }
+    .progress.active { display: block; }
+    .progress-label {
+      font-size: 11px;
+      color: #546e7a;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .progress-track {
+      height: 6px;
+      background: #e0e0e0;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #ff9900;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
   </style>
 </head>
 <body>
@@ -270,6 +303,15 @@
     </div>
     <p class="hint">Navigate to each page of your orders and click Collect Orders.</p>
     <div id="message" class="message hidden"></div>
+    <div id="progress" class="progress">
+      <div class="progress-label">
+        <span id="progressLabel"></span>
+        <span id="progressPct"></span>
+      </div>
+      <div class="progress-track">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+    </div>
     <button id="collectBtn" class="btn-primary" disabled>Collect Orders</button>
     <div class="toggle-row">
       <label class="toggle-label" for="includeCategories">Include categories (slower)</label>
